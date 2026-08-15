@@ -1,0 +1,180 @@
+{
+  "sources": [
+    {
+      "id": "mc-fraud-ai-2026",
+      "title": "AI is helping banks transform payment fraud prevention",
+      "date": "2026-02",
+      "url": "https://www.mastercard.com/global/en/news-and-trends/Insights/2026/ai-is-helping-banks-save-millions-by-transforming-payment-fraud-prevention.html",
+      "summary": "Mastercard describes GenAI raising both fraud velocity and detection quality. Public priorities include impersonation scams, synthetic identity, and cross-border abuse. Defensive systems score historical patterns; novel GenAI lures still arrive faster than labeled data.",
+      "families": ["phishing_ato", "synthetic_identity", "authorized_push"]
+    },
+    {
+      "id": "mc-threat-intel-2025",
+      "title": "Mastercard Threat Intelligence",
+      "date": "2025-10",
+      "url": "https://www.mastercard.com/us/en/news-and-trends/press/2025/october/Mastercard-introduces-first-ever-threat-intelligence-solution.html",
+      "summary": "Public launch of network threat intelligence combining cyber indicators with payment visibility. Pilots cited thousands of malicious domains tied to card testing and digital skimming risk. Useful as an upstream feed for attack-family discovery, not as a red-team generator.",
+      "families": ["credential_stuffing", "phishing_ato"]
+    },
+    {
+      "id": "mc-agent-pay",
+      "title": "Mastercard Agent Pay and verifiable intent",
+      "date": "2025-10",
+      "url": "https://www.mastercard.com/us/en/business/artificial-intelligence/mastercard-agent-pay.html",
+      "summary": "Agentic commerce adds a delegation layer: a human authorizes an agent within constraints (amount, merchant, time). Public specs describe SD-JWT-style intent. New fraud signal: constraint violation and broken delegation chains. New attack surface: excessive agency and injected agent instructions.",
+      "families": ["malicious_agent", "prompt_injection_pay"]
+    },
+    {
+      "id": "upi-fraud-india",
+      "title": "UPI-linked fraud patterns in India",
+      "date": "2025-12",
+      "url": "https://www.rbi.org.in/",
+      "summary": "Indian rails see collect-request confusion, QR destination swaps, mule layering, and SIM-swap OTP theft. Beneficiary-name mismatch and mule-account risk are the readable detection signals. Authorized push (victim sends funds) is distinct from unauthorized card fraud.",
+      "families": ["deepfake_upi", "qr_swap", "sim_swap", "authorized_push"]
+    },
+    {
+      "id": "deepfake-voice-scams",
+      "title": "Deepfake voice used in authorized-push scams",
+      "date": "2026-01",
+      "url": "https://www.mastercard.com/global/en/news-and-trends/Insights/2026/ai-is-helping-banks-save-millions-by-transforming-payment-fraud-prevention.html",
+      "summary": "Voice cloning lets an attacker impersonate a relative or bank officer on a call, then coach the victim to approve a UPI collect or push payment. Liveness assumptions on voice biometrics do not hold. Detector cues: urgency, new beneficiary, mule risk — not the audio itself in this prototype.",
+      "families": ["deepfake_upi", "authorized_push"]
+    },
+    {
+      "id": "synthetic-id-kyc",
+      "title": "Synthetic identity and deepfake KYC as a growth vector",
+      "date": "2026-02",
+      "url": "https://www.mastercard.com/global/en/news-and-trends/Insights/2026/ai-is-helping-banks-save-millions-by-transforming-payment-fraud-prevention.html",
+      "summary": "Industry surveys cited by Mastercard list synthetic identity among the fastest-growing fraud concerns. Generative IDs plus injected liveness video can pass point-in-time KYC. Mature mule accounts then layer proceeds. Overlay cues: new device, location mismatch, mule-account risk on early spend.",
+      "families": ["synthetic_identity", "sim_swap"]
+    },
+    {
+      "id": "agentic-attacks-owasp",
+      "title": "OWASP LLM risks mapped onto agent payments",
+      "date": "2025",
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "summary": "OWASP LLM01 (prompt injection), LLM06 (excessive agency), and LLM08 (poisoned retrieval) become payment fraud when the model can call a pay API. Principle of least capability: agents should only pay inside a signed intent. Indirect injection via a merchant page can redirect the payee without a constraint break that looks obvious.",
+      "families": ["prompt_injection_pay", "malicious_agent"]
+    },
+    {
+      "id": "refund-chargeback-llm",
+      "title": "Generated refund and chargeback narratives",
+      "date": "2026-03",
+      "url": "https://www.mastercard.com/global/en/news-and-trends/Insights/2026/ai-is-helping-banks-save-millions-by-transforming-payment-fraud-prevention.html",
+      "summary": "LLMs draft refund claims and dispute letters that match merchant policy language. Pattern to watch: repeat high-quality narratives across unrelated accounts, velocity of refund requests, and mule destinations for reversed funds. This family is identified for the catalog; row simulation is not in this build.",
+      "families": ["refund_llm"]
+    },
+    {
+      "id": "visa-enumeration",
+      "title": "Account enumeration and credential testing",
+      "date": "2026",
+      "url": "https://corporate.visa.com/en/solutions/visa-protect/insights/ai-fraud-detection.html",
+      "summary": "Public card-network writeups describe enumeration and credential-testing bursts before CNP fraud. Mastercard Threat Intelligence similarly flags card testing. Signals: login or auth velocity, device churn, location jumps. Distinct from phishing ATO because the credential source is reused dumps, not a fresh lure.",
+      "families": ["credential_stuffing", "phishing_ato"]
+    },
+    {
+      "id": "qr-whatsapp-upi",
+      "title": "QR and messaging-rail payment diversion",
+      "date": "2025-10",
+      "url": "https://www.npci.org.in/",
+      "summary": "Fraudsters swap a merchant QR at the counter or send a lookalike code in chat. The customer believes they are paying the shop. Detection is a beneficiary and location mismatch against the expected merchant, plus mule-account risk on the receiving VPA. No malware required.",
+      "families": ["qr_swap", "authorized_push"]
+    },
+    {
+      "id": "intent-mismatch-agent",
+      "title": "Delegated intent vs executed agent payment",
+      "date": "2026-01",
+      "url": "https://www.mastercard.com/us/en/business/artificial-intelligence/mastercard-agent-pay.html",
+      "summary": "Agent Pay public materials describe amount, merchant, and time constraints on a delegated agent. The useful fraud signal is a mismatch between signed intent and the executed payment, not the model weights. Excessive agency and spoofed agent identity sit in the same family cluster.",
+      "families": ["intent_mismatch", "excessive_agent", "spoofed_agent", "malicious_agent"]
+    },
+    {
+      "id": "upi-screen-share",
+      "title": "Remote-assist and fake care flows on UPI",
+      "date": "2025-12",
+      "url": "https://www.rbi.org.in/",
+      "summary": "Public UPI fraud writeups describe screen-share OTP theft and fake customer-care links. Detector cues remain device change, new beneficiary, and mule risk. This prototype does not simulate the social script.",
+      "families": ["screen_share_otp", "fake_customer_care", "sim_swap", "deepfake_upi"]
+    },
+    {
+      "id": "wallet-mule-graph",
+      "title": "Wallet hops and mule clustering",
+      "date": "2026-02",
+      "url": "https://www.mastercard.com/global/en/news-and-trends/Insights/2026/ai-is-helping-banks-save-millions-by-transforming-payment-fraud-prevention.html",
+      "summary": "After an inbound debit, proceeds often hop across wallets. Graph-derived mule risk and shared-device degree matter more than a single-row amount. Wallet ATO is the account-takeover sibling on the same rail.",
+      "families": ["mule_network", "wallet_transfer", "wallet_ato"]
+    },
+    {
+      "id": "link-invoice-destination",
+      "title": "Payment-link and invoice destination swaps",
+      "date": "2026-03",
+      "url": "https://corporate.visa.com/en/solutions/visa-protect/insights/ai-fraud-detection.html",
+      "summary": "Lookalike payment links and generated invoices change the beneficiary while leaving amount and timestamp plausible. Same overlay family as QR destination substitution: beneficiary mismatch plus mule-account risk.",
+      "families": ["payment_link_swap", "invoice_fraud", "destination_substitution", "qr_swap"]
+    },
+    {
+      "id": "kyc-velocity-cnp",
+      "title": "Deepfake KYC, card testing, and velocity bursts",
+      "date": "2026-02",
+      "url": "https://www.mastercard.com/us/en/news-and-trends/press/2025/october/Mastercard-introduces-first-ever-threat-intelligence-solution.html",
+      "summary": "Network threat intel still flags card-testing bursts and synthetic onboarding. Velocity, new device, and mule risk on first-week spend are the tabular stand-ins. Chargeback abuse is identified as a post-sale sibling, not simulated as a row overlay.",
+      "families": ["deepfake_kyc", "cnp_testing", "velocity_burst", "chargeback_abuse", "synthetic_identity", "document_forgery", "face_swap"]
+    },
+    {
+      "id": "session-replay-ato",
+      "title": "Session reuse after a legitimate login",
+      "date": "2026-03",
+      "url": "https://www.mastercard.com/global/en/news-and-trends/Insights/2026/ai-is-helping-banks-save-millions-by-transforming-payment-fraud-prevention.html",
+      "summary": "Public fraud-prevention write-ups still flag second-device spend on a live session. New device plus location mismatch on an already-authenticated user is the tabular stand-in; no cookie or token material is stored here.",
+      "families": ["session_hijack", "phishing_ato", "credential_stuffing"]
+    },
+    {
+      "id": "adversarial-tabular",
+      "title": "Evasive rows after a family overlay",
+      "date": "2026-04",
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "summary": "Closed-loop novelty on this demo is washed overlay rows, not a missing family. Small amount and velocity nudges keep the story while lowering the detector score. Adaptive intensity uses the existing evolutionary perturber.",
+      "families": ["adversarial_row", "prompt_injection_pay", "malicious_agent"]
+    },
+    {
+      "id": "agent-to-agent-pay",
+      "title": "Delegated agents settling without a user-named payee",
+      "date": "2026-03",
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "summary": "Agent Pay research flags tool-to-tool settlement that can satisfy each policy while violating the user's constraint. Intent mismatch and excessive agency are siblings; the overlay still uses constraint_violation and amount versus limit.",
+      "families": ["agent_to_agent", "intent_mismatch", "excessive_agent", "malicious_agent"]
+    },
+    {
+      "id": "fake-merchant-kyc",
+      "title": "Generated storefronts in merchant onboarding",
+      "date": "2025-11",
+      "url": "https://www.mastercard.com/us/en/news-and-trends/press/2025/october/Mastercard-introduces-first-ever-threat-intelligence-solution.html",
+      "summary": "Network intel on mule merchants still starts at onboarding: synthetic documents, burst first-week volume, shared payee risk. Identified as a merchant-interaction family; not simulated as a new overlay.",
+      "families": ["fake_merchant", "mule_network", "synthetic_identity"]
+    },
+    {
+      "id": "sim-swap-otp-voice",
+      "title": "SIM swap and voice-clone OTP pressure",
+      "date": "2025-12",
+      "url": "https://www.npci.org.in/what-we-do/upi/product-overview",
+      "summary": "Public UPI and issuer notes still describe SIM-swap debit and voice-clone pressure on OTP channels. Screen-share OTP is the adjacent India pattern. Overlay uses new device, night hours, and velocity — no OTP scripts.",
+      "families": ["sim_swap", "screen_share_otp", "deepfake_upi", "voice_clone_auth", "voice_impersonation"]
+    },
+    {
+      "id": "identity-auth-genai-pack",
+      "title": "GenAI identity and authentication fraud on payment aftermath",
+      "date": "2026-04",
+      "url": "https://www.mastercard.com/global/en/news-and-trends/Insights/2026/ai-is-helping-banks-save-millions-by-transforming-payment-fraud-prevention.html",
+      "summary": "Public industry notes list synthetic identity, deepfake KYC, forged documents, face-swap video, and voice-clone login as established or emerging identity attacks. This prototype does not generate faces, IDs, or audio. It scores the first payments after those events: liveness risk, document tamper, biometric mismatch, and voiceprint mismatch on ULB-style rows.",
+      "families": ["synthetic_identity", "deepfake_kyc", "document_forgery", "face_swap", "voice_clone_auth"]
+    },
+    {
+      "id": "auth-phishing-voice-video-locale",
+      "title": "Authentication fraud: phishing, voice impersonation, video support, locale scams",
+      "date": "2026-04",
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+      "summary": "AI-generated phishing still shows up as new-device CNP spend. Voice clones on the phone authorize mule payments. Deepfake video support is low-feasibility here and uses a weak biometric overlay. Multilingual scam automation is modeled as cross-border authorized push, not as lure text.",
+      "families": ["phishing_ato", "voice_impersonation", "deepfake_video", "multilingual_scam", "authorized_push"]
+    }
+  ]
+}
