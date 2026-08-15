@@ -1293,7 +1293,7 @@ def main() -> None:
     st.session_state.setdefault("sim_replay", None)
     with st.sidebar:
         st.markdown(
-            f'<div class="ff-kicker">Mastercard Innovation Challenge</div>'
+            f'<div class="ff-kicker">Mastercard payment defense</div>'
             f'<div style="font-size:1.35rem;font-weight:700;color:{BLACK};margin:0.2rem 0 0.8rem;">FraudForge</div>',
             unsafe_allow_html=True,
         )

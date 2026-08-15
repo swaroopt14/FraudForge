@@ -33,6 +33,13 @@ env/
 .vscode/
 *.swp
 
+# Local tooling (do not ship)
+.cursor/
+.claude/
+.agents/
+closed loop/
+*BUILD REQUEST.md
+
 # Streamlit
 .streamlit/secrets.toml
 

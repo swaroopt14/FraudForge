@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -25,9 +26,10 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="FraudForge", version="1.0.0", lifespan=lifespan)
+_cors = [o.strip() for o in os.getenv("FRAUDFORGE_CORS_ORIGINS", "*").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors or ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

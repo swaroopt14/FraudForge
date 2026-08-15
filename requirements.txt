@@ -1,2 +1,3 @@
+# Local / full train (includes torch + SDV). Deploy and CI use requirements-deploy.txt.
 -r backend/requirements.txt
 -r frontend/requirements.txt

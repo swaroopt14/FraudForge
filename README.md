@@ -1,78 +1,151 @@
 # FraudForge
 
-Closed-loop red team / blue team system for payment fraud. Built for the Mastercard Innovation Challenge 2026.
+Closed-loop **red team / blue team** system for Mastercard-style payment fraud.
 
-Identify emerging GenAI-powered fraud hypotheses, generate synthetic attacks, detect them with XGBoost + an autoencoder, then retrain on what slipped through.
+Identify emerging GenAI attack families, generate synthetic transactions, detect them with a hybrid classifier, then retrain on what slipped through.
 
-## Stack
+Product detail: [PROJECT.md](PROJECT.md)
 
-- Backend: Python 3.10+, FastAPI
-- Models: XGBoost (HistGradientBoosting if `libomp` is missing), CTGAN / Torch GAN / bootstrap sampler, autoencoder (Torch or sklearn MLP)
-- LLM: OpenAI (optional — canned hypotheses if no key)
-- Data: ULB Credit Card Fraud (`Time`, `V1`–`V28`, `Amount`, `Class`) plus a narrative overlay for judge-readable SHAP
-- Store: SQLite
-- UI: Streamlit, Plotly, Mastercard colors (`#EB001B`, `#000000`, `#FFFFFF`) with Tailwind CDN utilities
+This repository is ready to run locally or deploy as containers. Secrets, the ULB CSV, and trained model files stay out of git.
 
-## Quick start
+---
+
+## What ships vs what you generate
+
+| In git | Generated on first boot / train |
+| --- | --- |
+| Catalog, overlays, API, Streamlit console | `backend/models/detector.pkl` |
+| Demo intel, scenarios, closed-loop JSON | ULB `creditcard.csv` (or a synthetic stand-in) |
+| Tests and CI | SQLite + simulation event logs |
+
+Never commit `.env`. Copy `.env.example`.
+
+---
+
+## Local run
+
+Python 3.11+ recommended.
 
 ```bash
-cd "gff mastercard hackthon"   # repo root
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env           # optional OPENAI_API_KEY / ANTHROPIC_API_KEY
+cp .env.example .env
 
-python scripts/train_all.py    # download data, train, write demo artifacts
+python scripts/bootstrap_deploy.py
 
-# Terminal 1
-uvicorn backend.app:app --reload --port 8000
+# API  http://127.0.0.1:8000/health
+uvicorn backend.app:app --host 0.0.0.0 --port 8000
 
-# Terminal 2
+# Console  http://127.0.0.1:8501
 streamlit run frontend/app.py
 ```
 
-`train_all.py` is required before the first demo. It writes:
+On macOS, if NumPy fails to load:
 
-- `backend/models/detector.pkl`
-- `backend/models/ctgan.pkl`
-- `backend/models/autoencoder.pt`
-- `backend/data/demo/scenarios.json`
-- `backend/data/demo/closed_loop.json`
+```bash
+unset DYLD_LIBRARY_PATH
+```
 
-Individual steps: `python scripts/download_data.py`, `python scripts/train_detector.py`, `python scripts/train_ctgan.py`.
+XGBoost needs OpenMP (`brew install libomp`). Without it the detector uses HistGradientBoosting.
 
-If the full ULB CSV cannot be downloaded (disk/network), `scripts/download_data.py` writes a schema-compatible synthetic table so the demo still trains.
+Optional full train (CTGAN + autoencoder + live closed loop):
 
-On macOS, XGBoost needs OpenMP (`brew install libomp`). Without it the detector uses `HistGradientBoostingClassifier` automatically.
+```bash
+python scripts/train_all.py
+```
 
-## Demo path (judges)
+Optional LLM for Identify: set `NVIDIA_API_KEY` or `OPENAI_API_KEY` in `.env`. Without a key, discovery uses the local catalog.
 
-1. **Attack discovery** — paste threat intel, generate five hypotheses.
-2. **Attack generation** — sample synthetic fraud, inspect Amount KS vs real fraud.
-3. **Fraud detection** — run the three transaction scenarios; read SHAP.
-4. **Closed-loop evaluation** — load precomputed before/after metrics (optional live retrain).
+---
 
-Streamlit talks to the in-process service (same code FastAPI exposes). FastAPI is the HTTP contract at `http://127.0.0.1:8000`.
+## Docker
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+- API: http://127.0.0.1:8000/health
+- Console: http://127.0.0.1:8501
+
+First boot trains the detector if `detector.pkl` is missing (a few minutes). Models persist in a Docker volume.
+
+API only:
+
+```bash
+docker build -t fraudforge .
+docker run --rm -p 8000:8000 --env-file .env fraudforge
+```
+
+UI only (same image):
+
+```bash
+docker run --rm -p 8501:8501 -e PORT=8501 --env-file .env fraudforge bash scripts/start_ui.sh
+```
+
+---
+
+## Hosted deploy
+
+Both processes bind `0.0.0.0` and read `PORT`.
+
+| Target | How |
+| --- | --- |
+| **Docker host / VM** | `docker compose up --build -d` |
+| **Render / Railway / Fly** | Web service from this Dockerfile. Set start command `bash scripts/start_api.sh` (API) or `bash scripts/start_ui.sh` (console). Map `PORT`. |
+| **Streamlit Community Cloud** | App file `streamlit_app.py`. Python 3.11. Uses `packages.txt` (`libgomp1`) and `requirements-deploy.txt` as the dependency file if you point the cloud settings at it; otherwise install `requirements.txt` (heavier). |
+
+Set these on the host:
+
+```
+HOST=0.0.0.0
+PORT=<platform port>
+FRAUDFORGE_API_URL=https://<your-api-host>
+FRAUDFORGE_CORS_ORIGINS=https://<your-ui-host>
+```
+
+LLM keys stay in the platform secret store, not in git.
+
+Health check for the API: `GET /health` → `{"status":"ok"}`.
+
+---
+
+## Tests
+
+```bash
+source .venv/bin/activate
+python -m pytest tests -q
+```
+
+CI runs the same suite on every push to `main` (`.github/workflows/ci.yml`).
+
+---
 
 ## API
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| POST | `/research/hypotheses` | LLM / fallback hypotheses |
-| POST | `/attacks/generate` | CTGAN + family overlay |
-| POST | `/detect` | Probability, risk, SHAP, anomaly |
-| POST | `/detect/explain` | Batch SHAP |
+| GET | `/health` | Liveness |
+| GET | `/metrics` | Model and artifact status |
+| GET | `/research/catalog` | Attack catalog |
+| POST | `/research/hypotheses` | Identify |
+| POST | `/attacks/generate` | Synthetic rows |
+| POST | `/detect` | Batch score |
 | POST | `/evaluate/loop` | Closed-loop metrics |
-| GET | `/metrics` | Detector + artifact status |
-| GET | `/scenarios` | Four judge scenarios |
+| POST | `/simulation/start` | Payment simulator |
+
+---
 
 ## Layout
 
 ```
-backend/agents/     research, CTGAN, adversarial, XGBoost, autoencoder, eval, feedback
-backend/app.py      FastAPI
-frontend/app.py     Streamlit console
-scripts/            download + train
+backend/app.py          FastAPI
+frontend/app.py        Streamlit console
+streamlit_app.py       Cloud entrypoint
+scripts/bootstrap_deploy.py   First-boot data + detector
+scripts/start_api.sh   Container / host API
+scripts/start_ui.sh    Container / host UI
+Dockerfile             API image (UI uses the same image)
+docker-compose.yml     API + console
 ```
-
-See [SOLUTION_WALKTHROUGH.md](SOLUTION_WALKTHROUGH.md) for judging criteria and the four scenarios.

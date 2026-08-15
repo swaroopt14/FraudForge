@@ -1,0 +1,46 @@
+services:
+  api:
+    build: .
+    command: ["bash", "scripts/start_api.sh"]
+    ports:
+      - "8000:8000"
+    environment:
+      HOST: "0.0.0.0"
+      API_PORT: "8000"
+      PORT: "8000"
+      FRAUDFORGE_API_URL: "http://api:8000"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - models:/app/backend/models
+      - creditcard:/app/backend/data/creditcard
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 8
+      start_period: 120s
+
+  ui:
+    build: .
+    command: ["bash", "scripts/start_ui.sh"]
+    ports:
+      - "8501:8501"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8501"
+      FRAUDFORGE_API_URL: "http://api:8000"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - models:/app/backend/models
+      - creditcard:/app/backend/data/creditcard
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  models:
+  creditcard:

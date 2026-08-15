@@ -123,6 +123,8 @@ Legitimate rows draw near-zero values. Attack rows draw from the family template
 
 ---
 
+Clone-and-deploy steps live in [README.md](README.md).
+
 ## Run locally
 
 ```bash
