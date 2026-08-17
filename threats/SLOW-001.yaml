@@ -1,0 +1,122 @@
+attack_id: SLOW-001
+name: Low-and-Slow Fraud
+category: sequence
+evidence_level: research_pattern
+objective: Keep amount, device, and geo normal; drift timing and destination use.
+target: normal_customers
+attack_surface:
+- timing
+- sequence
+- destination
+required_entities:
+- customer
+- device
+- merchant
+required_features:
+- amount
+- hour_of_day
+- transaction_count_24h
+mutation_strategy: shift_timing_keep_amount_device_geo
+network_strategy: none
+intent_strategy: none
+agent_strategy: none
+evasion_strategies:
+- preserve_amount
+- preserve_device
+- preserve_geo
+difficulty_levels:
+  LOW:
+    amount_deviation: 0.0
+    velocity_multiplier: 1.4
+    merchant_count_multiplier: 1.0
+    geo_deviation: 0.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 6.0
+    dest_concentration_delta: 0.35
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: false
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 1
+    spread_seconds: 0.0
+  MEDIUM:
+    amount_deviation: 0.0
+    velocity_multiplier: 1.15
+    merchant_count_multiplier: 1.0
+    geo_deviation: 0.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 3.0
+    dest_concentration_delta: 0.16
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: false
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 1
+    spread_seconds: 0.0
+  HIGH:
+    amount_deviation: 0.0
+    velocity_multiplier: 1.02
+    merchant_count_multiplier: 1.0
+    geo_deviation: 0.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 0.8
+    dest_concentration_delta: 0.04
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: false
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 1
+    spread_seconds: 0.0
+simulation_template: legit_overlay:low_and_slow
+detection_signals:
+- hour_of_day
+- destination_concentration
+expected_mitigation: Sequence and cumulative destination features.
+family: low_and_slow
+variants:
+- id: SLOW-V01
+  name: Night shift
+  overlays:
+    hour_shift: 7.0
+- id: SLOW-V02
+  name: Dest creep
+  overlays:
+    dest_concentration_delta: 0.3
+- id: SLOW-V03
+  name: Gentle cadence
+  overlays:
+    velocity_multiplier: 1.3
+- id: SLOW-V04
+  name: Mimic hours
+  overlays:
+    hour_shift: 1.2
+    dest_concentration_delta: 0.08
+- id: SLOW-V05
+  name: Near invisible
+  overlays:
+    hour_shift: 0.4
+    dest_concentration_delta: 0.02

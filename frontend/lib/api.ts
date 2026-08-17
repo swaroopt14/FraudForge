@@ -22,6 +22,123 @@ export type Metrics = {
   pr_auc: number;
   roc_auc?: number;
   fpr: number;
+  threshold?: number;
+};
+
+export type DashboardSummary = {
+  transactions_simulated: number;
+  attack_runs: number;
+  detection_rate: number;
+  holdout_detection_rate: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  pr_auc: number;
+  false_positive_rate: number;
+  attack_success_rate: number | null;
+  attack_fidelity: number | null;
+  model_version: string;
+  backend?: string;
+  latest_simulation: string | null;
+  n_features: number;
+};
+
+export type RunSummary = {
+  simulation_id: string;
+  attack_id: string;
+  attack_name: string;
+  variant_id: string;
+  difficulty: string;
+  scale: number;
+  detection_rate: number;
+  attack_success: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  pr_auc: number;
+  fpr: number;
+  fidelity: number;
+  model_version: string;
+  novelty: string;
+  status?: string;
+};
+
+export type ThreatCard = ThreatSummary & {
+  evidence?: string;
+  evidence_level?: string;
+  objective?: string;
+  variant_count?: number;
+  supported_difficulties?: string[];
+  simulation_ready?: boolean;
+  status?: string;
+};
+
+export type ThreatDetail = {
+  attack_id: string;
+  name: string;
+  category: string;
+  evidence: string;
+  objective: string;
+  variants: number;
+  variant_list: { id: string; name: string }[];
+  supported_difficulties: string[];
+  detection_signals: string[];
+  simulation_template: string;
+  family: string;
+  simulation_ready: boolean;
+  expected_mitigation?: string;
+};
+
+export type BlueModel = {
+  model_version: string;
+  algorithm: string;
+  backend?: string;
+  training_dataset: string;
+  features: number;
+  feature_names: string[];
+  last_trained: string | null;
+  thresholds: { allow: number; step_up: number; review: number; detect: number };
+  holdout: Partial<Metrics>;
+};
+
+export type RiskLane = {
+  enabled: boolean;
+  phase: string;
+  source: string | null;
+};
+
+export type Confusion = {
+  tn: number;
+  fp: number;
+  fn: number;
+  tp: number;
+  threshold: number;
+  source?: string;
+};
+
+export type ThresholdPoint = Metrics & { n?: number; n_pos?: number };
+
+export type TxRow = {
+  transaction_id: string;
+  simulation_id?: string;
+  amount?: number;
+  fraud_probability: number;
+  decision: string;
+  attack_id?: string;
+  attack_family?: string;
+  merchant_id?: string;
+  device_id?: string;
+  customer_id?: string;
+  beneficiary_id?: string;
+  hour_of_day?: number;
+};
+
+export type TxExplanation = {
+  transaction_id: string;
+  fraud_probability: number;
+  decision: string;
+  explanation: Explanation[];
+  gap?: string;
 };
 
 export type ModelMetrics = {
@@ -30,6 +147,7 @@ export type ModelMetrics = {
   backend?: string;
   per_attack?: Record<string, Metrics>;
   fidelity?: Record<string, number>;
+  model_version?: string;
 };
 
 export type Explanation = {
@@ -68,15 +186,235 @@ export type Simulation = {
   report: string;
   missed_transactions: ScoredRow[];
   preview: ScoredRow[];
-  variant_id?: string;
-  model_id?: string;
 };
 
-export type AttackCatalogItem = {
+export type GraphNode = {
   id: string;
+  type: string;
+  label: string;
+  degree?: number;
+  role?: string;
+  flag?: string;
+  detected?: boolean | null;
+};
+
+export type GraphEdge = {
+  source: string;
+  target: string;
+  relation: string;
+  label?: string;
+  src_type?: string;
+  dst_type?: string;
+};
+
+export type GraphHub = {
+  type: string;
+  id: string;
+  customers: number;
+};
+
+export type GraphPathStep = {
+  id: string;
+  label: string;
+  type: string;
+  present?: boolean;
+  status?: string;
+};
+
+export type GraphPayload = {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  n_edges?: number;
+  n_nodes?: number;
+  shared_hubs?: GraphHub[];
+  attack_networks?: number;
+  edge_fingerprint?: string[];
+  edge_table?: Record<string, unknown>[];
+  family?: string;
+  attack_id?: string;
+  variant_id?: string;
+  stats?: {
+    n_nodes?: number;
+    n_edges?: number;
+    shared_hubs?: number;
+    compromised_accounts?: number;
+    new_devices?: number;
+    new_beneficiaries?: number;
+    new_ips?: number;
+  };
+  focus?: { nodes: GraphNode[]; edges: GraphEdge[]; n_nodes?: number; n_edges?: number };
+  path?: GraphPathStep[];
+  blue?: { label: string; status: string }[];
+  motif?: { id: string; label: string; present: boolean }[];
+  agent_events?: {
+    transaction_id: string;
+    agent_id: string;
+    tool: string;
+    intent: string;
+    in_scope: boolean;
+    reason: string;
+  }[];
+};
+
+export type RedTeamResult = Simulation & {
+  attack_id?: string;
+  attack_name?: string;
+  variant_id?: string;
+  difficulty?: string;
+  fidelity?: Record<string, number>;
+  entities?: {
+    entities?: number;
+    customers?: number;
+    devices?: number;
+    ips?: number;
+    beneficiaries?: number;
+    attack_networks?: number;
+  };
+  context?: {
+    shared_devices?: number;
+    shared_ips?: number;
+    mule_networks?: number;
+  };
+  finding?: string;
+  detection_signals?: string[];
+  contract?: Record<string, unknown>;
+  graph?: GraphPayload;
+  agent_events?: GraphPayload["agent_events"];
+  agent_event_count?: number;
+};
+
+export type ThreatSummary = {
+  attack_id: string;
   name: string;
-  tier?: string;
-  mutates?: string[];
+  category: string;
+  family: string;
+  variants: { id: string; name: string }[];
+  detection_signals: string[];
+};
+
+export type LeaderboardRow = {
+  attack_id: string;
+  name: string;
+  difficulty: string;
+  detection_rate: number | null;
+  attack_success: number | null;
+  evasion: number | null;
+  pr_auc: number | null;
+  fidelity: number | null;
+  scale: number;
+  novelty: string;
+  model_version: string | null;
+};
+
+export type RegressionRow = {
+  simulation_id: string;
+  attack_id: string;
+  attack_name: string;
+  variant_id: string;
+  difficulty: string;
+  seed: number;
+  scale: number;
+  model_version: string;
+  detection_rate: number;
+  attack_success: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  pr_auc: number;
+  fpr: number;
+  fidelity: number;
+  novelty: string;
+};
+
+export type BlueTeamLab = {
+  model_version: string;
+  backend?: string;
+  holdout: Partial<Metrics>;
+  logreg?: Partial<Metrics>;
+  per_attack?: Record<string, Metrics>;
+  features: { feature: string; importance: number }[];
+  weaknesses: RegressionRow[];
+  history: RegressionRow[];
+  leaderboard: LeaderboardRow[];
+};
+
+export type DefenseCoverage = {
+  attack_id: string;
+  name: string;
+  tested: number;
+  blocked: number;
+  missed: number;
+  recall: number;
+  difficulty?: string | null;
+  model_version?: string | null;
+  current_detector?: boolean;
+};
+
+export type DefenseCenter = {
+  model_version: string;
+  backend?: string;
+  source: string;
+  tested: number;
+  blocked: number;
+  bypassed: number;
+  detection_rate: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  pr_auc: number;
+  false_positive_rate: number;
+  coverage: DefenseCoverage[];
+  weakest?: DefenseCoverage | null;
+  latest_run?: RunSummary | null;
+  run_count: number;
+};
+
+export type LoopRound = {
+  simulation_id?: string;
+  attack_id?: string;
+  attack_name?: string;
+  variant_id?: string;
+  difficulty?: string;
+  seed?: number;
+  scale?: number;
+  generated?: number;
+  detected?: number;
+  missed?: number;
+  detection_rate?: number;
+  attack_success?: number;
+  precision?: number;
+  recall?: number;
+  f1?: number;
+  model_version?: string;
+  finding?: string;
+};
+
+export type LoopSummary = {
+  round: number;
+  source?: string;
+  blue_model: string;
+  current?: LoopRound | RunSummary | null;
+  prior?: LoopRound | RunSummary | null;
+  before?: LoopRound | null;
+  after?: LoopRound | null;
+  delta?: {
+    detection_rate?: number;
+    attack_success?: number;
+    detected?: number;
+    missed?: number;
+  };
+  contract?: {
+    attack_id?: string;
+    variant_id?: string;
+    variant_name?: string;
+    family?: string;
+    difficulty?: string;
+    seed?: number;
+    transaction_count?: number;
+  };
+  holdout?: Partial<Metrics>;
+  weakest?: LoopRound | RunSummary | null;
+  note?: string;
 };
 
 export type BlueDashboard = {
@@ -109,11 +447,7 @@ export type BlueDetection = {
   beneficiary_id?: string;
 };
 
-export type BlueSignal = {
-  signal: string;
-  fired: boolean;
-  severity: string;
-};
+export type BlueSignal = { signal: string; fired: boolean; severity: string };
 
 export type BlueDetectionDetail = {
   transaction_id: string;
@@ -227,4 +561,3 @@ export type BlueCompare = {
   coordinated_attacks?: Record<string, { p0_recall: number; p2_recall: number }>;
   per_attack?: Record<string, Metrics & { attack_recall?: number }>;
 };
-

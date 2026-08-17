@@ -1,0 +1,132 @@
+attack_id: IP-001
+name: Shared IP Coordination
+category: network
+evidence_level: research_pattern
+objective: Coordinate accounts from a small IP set.
+target: normal_customers
+attack_surface:
+- ip
+required_entities:
+- customer
+- ip
+required_features:
+- amount
+- hour_of_day
+- transaction_count_24h
+mutation_strategy: collapse_ip_ids_into_clusters
+network_strategy: shared_ip_clusters
+intent_strategy: none
+agent_strategy: none
+evasion_strategies:
+- behavioral_mimicry
+difficulty_levels:
+  LOW:
+    amount_deviation: 0.0
+    velocity_multiplier: 2.2
+    merchant_count_multiplier: 1.0
+    geo_deviation: 20.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 0.0
+    dest_concentration_delta: 0.0
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: true
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 1
+    spread_seconds: 0.0
+  MEDIUM:
+    amount_deviation: 0.0
+    velocity_multiplier: 1.4
+    merchant_count_multiplier: 1.0
+    geo_deviation: 8.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 0.0
+    dest_concentration_delta: 0.0
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: true
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 4
+    spread_seconds: 0.0
+  HIGH:
+    amount_deviation: 0.0
+    velocity_multiplier: 1.04
+    merchant_count_multiplier: 1.0
+    geo_deviation: 1.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 0.0
+    dest_concentration_delta: 0.0
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: true
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 9
+    spread_seconds: 0.0
+simulation_template: legit_overlay:shared_ip
+detection_signals:
+- ip_id
+expected_mitigation: IP-degree and co-customer features (P2).
+family: shared_ip
+variants:
+- id: IP-V01
+  name: One exit node
+  overlays:
+    cluster_count: 1
+- id: IP-V02
+  name: Small proxy pool
+  overlays:
+    cluster_count: 4
+- id: IP-V03
+  name: Shared IP + geo jump
+  overlays:
+    geo_deviation: 22.0
+- id: IP-V04
+  name: Shared IP + burst
+  overlays:
+    velocity_multiplier: 3.0
+- id: IP-V05
+  name: Quiet pool
+  overlays:
+    cluster_count: 12
+    geo_deviation: 0.5
+- id: IP-N01
+  name: Shared IP quiet
+  overlays:
+    share_ip: true
+    cluster_count: 1
+    geo_deviation: 0.0
+    velocity_multiplier: 1.0
+    amount_deviation: 0.04
+    spread_seconds: 14400.0
+- id: IP-N02
+  name: Proxy pool distributed
+  overlays:
+    share_ip: true
+    cluster_count: 4
+    geo_deviation: 1.5
+    velocity_multiplier: 1.03
+    spread_seconds: 21600.0

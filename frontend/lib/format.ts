@@ -35,6 +35,10 @@ export function familyLabel(id?: string | null) {
   return id.replaceAll("_", " ");
 }
 
+export function label(value?: string | null) {
+  return familyLabel(value);
+}
+
 export function familyShort(id?: string | null) {
   if (!id) return "—";
   return FAMILY_SHORT[id] || id.slice(0, 3).toUpperCase();

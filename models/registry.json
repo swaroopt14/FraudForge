@@ -1,0 +1,71 @@
+{
+  "red_team": {
+    "attack_strategy": {
+      "version": "RED-0.1.0",
+      "status": "active",
+      "objective": "score attack configurations; never classify fraud",
+      "artifact": "models/RED-0.1.0/attack_strategy.joblib"
+    },
+    "novelty": {
+      "version": "RED-NOVELTY-0.1.0",
+      "status": "active",
+      "objective": "embedding similarity vs threat library + prior attacks",
+      "artifact": "models/RED-NOVELTY-0.1.0/vectorizer.joblib"
+    }
+  },
+  "blue_team": {
+    "fraud_detector": {
+      "version": "BLUE-0.1.0",
+      "status": "frozen",
+      "objective": "P(fraud) from observable payment features",
+      "artifact": "models/BLUE-0.1.0/blue_team.joblib",
+      "sha256": "66dbe604ad79405a32a320a8e4809d4c0a5a1c98880b1910d834b8bab93c820c"
+    },
+    "attack_classifier": {
+      "version": "BLUE-CLS-0.1.0",
+      "status": "experimental",
+      "objective": "attack family or UNKNOWN/EMERGING",
+      "artifact": "models/BLUE-CLS-0.1.0/attack_classifier.joblib",
+      "v011": {
+        "version": "BLUE-CLS-0.1.1",
+        "status": "experimental",
+        "objective": "attack family + variant or UNKNOWN/EMERGING",
+        "artifact": "models/BLUE-CLS-0.1.1/attack_classifier.joblib"
+      },
+      "v012": {
+        "version": "BLUE-CLS-0.1.2",
+        "status": "experimental",
+        "objective": "attack family + variant or UNKNOWN/EMERGING",
+        "artifact": "models/BLUE-CLS-0.1.2/attack_classifier.joblib"
+      },
+      "v020": {
+        "version": "BLUE-CLS-0.2.0",
+        "status": "experimental",
+        "objective": "attack family + variant or UNKNOWN/EMERGING on P2 features",
+        "artifact": "models/BLUE-CLS-0.2.0/attack_classifier.joblib"
+      }
+    },
+    "fraud_detector_v011": {
+      "version": "BLUE-0.1.1",
+      "status": "experimental",
+      "objective": "P(fraud) from P1 behavioral features; calibrated risk 0\u2013100",
+      "artifact": "models/BLUE-0.1.1/blue_team.joblib",
+      "feature_version": "BLUE-FEAT-0.1.1"
+    },
+    "fraud_detector_v012": {
+      "version": "BLUE-0.1.2",
+      "status": "active",
+      "objective": "P(fraud) with corpus-grounded beneficiary behavior; Round 1 demo baseline",
+      "artifact": "models/BLUE-0.1.2/blue_team.joblib",
+      "feature_version": "BLUE-FEAT-0.1.2"
+    },
+    "fraud_detector_v020": {
+      "version": "BLUE-0.2.0",
+      "status": "candidate",
+      "objective": "P(fraud) from P1 behavior plus geo/device/IP/beneficiary graph features",
+      "artifact": "models/BLUE-0.2.0/blue_team.joblib",
+      "feature_version": "BLUE-FEAT-0.2.0"
+    }
+  },
+  "feature_version": "BLUE-FEAT-0.1.0"
+}

@@ -22,6 +22,7 @@ from app.simulation.legit import fit_profiles, generate_legitimate
 
 _team: BlueTeam | None = None
 _payments: pd.DataFrame | None = None
+_controller = None
 
 
 def payments() -> pd.DataFrame:
@@ -40,6 +41,15 @@ def team() -> BlueTeam:
         else:
             _team = train_models()
     return _team
+
+
+def red_team_controller():
+    global _controller
+    if _controller is None:
+        from app.redteam.controller import RedTeamController
+
+        _controller = RedTeamController(payments(), team())
+    return _controller
 
 
 def feature_importance_payload() -> dict[str, Any]:

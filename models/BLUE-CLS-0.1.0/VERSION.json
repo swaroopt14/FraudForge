@@ -1,0 +1,22 @@
+{
+  "model_version": "BLUE-CLS-0.1.0",
+  "fitted": true,
+  "classes": [
+    "account_takeover",
+    "agent_scope",
+    "amount_anomaly",
+    "beneficiary_anomaly",
+    "fragmentation",
+    "geo_anomaly",
+    "intent_mismatch",
+    "legit",
+    "low_and_slow",
+    "merchant_coordination",
+    "mule_network",
+    "sequence_anomaly",
+    "shared_device",
+    "shared_ip",
+    "velocity_attack"
+  ],
+  "variant_classes": []
+}

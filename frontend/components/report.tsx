@@ -33,7 +33,7 @@ export function ReportPane({ result }: { result: Simulation }) {
         Run {result.simulation_id}
       </p>
       <h3 className="mt-3 text-3xl font-medium tracking-tight">
-        {result.attack_family.replaceAll("_", " ")}
+        {(result.attack_family || "attack").replaceAll("_", " ")}
       </h3>
       <p className="mt-3 text-[15px] text-white/55">
         <span className="font-mono text-white">{result.missed.toLocaleString()}</span> missed

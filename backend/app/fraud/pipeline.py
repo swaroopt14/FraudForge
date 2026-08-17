@@ -21,7 +21,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from app.core.config import FEATURE_COLUMNS, MODELS_DIR, RANDOM_STATE, ensure_dirs
+from app.core.config import (
+    FEATURE_COLUMNS,
+    FEATURE_COLUMNS_V011,
+    FEATURE_COLUMNS_V012,
+    FEATURE_COLUMNS_V020,
+    MODELS_DIR,
+    RANDOM_STATE,
+    ensure_dirs,
+)
 from app.data.ingest import attach_merchant_risk
 
 try:
@@ -33,12 +41,13 @@ except Exception:  # noqa: BLE001
     HAS_LGB = False
 
 
-def feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
+def feature_matrix(df: pd.DataFrame, columns: list[str] | None = None) -> pd.DataFrame:
+    cols = list(columns or FEATURE_COLUMNS)
     work = df.copy()
-    for col in FEATURE_COLUMNS:
+    for col in cols:
         if col not in work.columns:
             work[col] = 0.0
-    return work[FEATURE_COLUMNS].apply(pd.to_numeric, errors="coerce").fillna(0.0).astype(float)
+    return work[cols].apply(pd.to_numeric, errors="coerce").fillna(0.0).astype(float)
 
 
 def _fpr(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -85,6 +94,65 @@ def prepare_split(
     return train.reset_index(drop=True), test.reset_index(drop=True)
 
 
+def prepare_split_balanced(
+    payments: pd.DataFrame,
+    attacks: pd.DataFrame | None = None,
+    seed: int = RANDOM_STATE,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """IEEE 80/20, then 50/50 *within each attack family* so every family is in train and test."""
+    train, test = prepare_split(payments, attacks=None, seed=seed)
+    if attacks is None or not len(attacks):
+        return train, test
+    atk = attach_merchant_risk(train, attacks)
+    parts_tr: list[pd.DataFrame] = []
+    parts_te: list[pd.DataFrame] = []
+    family_col = "attack_family" if "attack_family" in atk.columns else None
+    if family_col is None:
+        mid = len(atk) // 2
+        train = pd.concat([train, atk.iloc[:mid]], ignore_index=True)
+        test = pd.concat([test, atk.iloc[mid:]], ignore_index=True)
+        return train.reset_index(drop=True), test.reset_index(drop=True)
+    for _family, group in atk.groupby(family_col, sort=False):
+        shuffled = group.sample(frac=1.0, random_state=seed)
+        mid = max(1, len(shuffled) // 2)
+        if mid >= len(shuffled):
+            mid = max(len(shuffled) - 1, 1)
+        parts_tr.append(shuffled.iloc[:mid])
+        parts_te.append(shuffled.iloc[mid:] if mid < len(shuffled) else shuffled.iloc[-1:])
+    train = pd.concat([train, *parts_tr], ignore_index=True)
+    test = pd.concat([test, *parts_te], ignore_index=True)
+    return train.reset_index(drop=True), test.reset_index(drop=True)
+
+
+def _uses_family_weights(model_id: str) -> bool:
+    mid = str(model_id or "")
+    if mid.startswith("BLUE-0.2"):
+        return True
+    return mid.startswith("BLUE-0.1.") and not mid.startswith("BLUE-0.1.0")
+
+
+def family_balanced_weights(frame: pd.DataFrame) -> np.ndarray:
+    """Keep quiet families from being drowned by amount-loud overlays."""
+    weights = np.ones(len(frame), dtype=float)
+    if "attack_family" not in frame.columns or "fraud_label" not in frame.columns:
+        return weights
+    pos = frame["fraud_label"].astype(int).to_numpy() == 1
+    families = frame["attack_family"].fillna("").astype(str).to_numpy()
+    labeled = pos & (families != "") & (families != "nan")
+    if not labeled.any():
+        return weights
+    counts: dict[str, int] = {}
+    for family in families[labeled]:
+        counts[family] = counts.get(family, 0) + 1
+    target = float(max(counts.values()))
+    boost = {"beneficiary_anomaly": 2.4, "mule_network": 2.0, "geo_anomaly": 1.3, "intent_mismatch": 1.3}
+    scale = {family: (target / max(n, 1)) * boost.get(family, 1.0) for family, n in counts.items()}
+    for i, (is_pos, family) in enumerate(zip(labeled, families)):
+        if is_pos:
+            weights[i] = scale.get(family, 1.0)
+    return weights
+
+
 def train_logreg(X: pd.DataFrame, y: pd.Series) -> Pipeline:
     pipe = Pipeline(
         [
@@ -96,12 +164,12 @@ def train_logreg(X: pd.DataFrame, y: pd.Series) -> Pipeline:
     return pipe
 
 
-def train_lightgbm(X: pd.DataFrame, y: pd.Series):
+def train_lightgbm(X: pd.DataFrame, y: pd.Series, sample_weight: np.ndarray | None = None):
     if not HAS_LGB:
         from sklearn.ensemble import HistGradientBoostingClassifier
 
         model = HistGradientBoostingClassifier(max_depth=6, max_iter=120, random_state=RANDOM_STATE)
-        model.fit(X, y)
+        model.fit(X, y, sample_weight=sample_weight)
         return model
     pos = max(int((y == 1).sum()), 1)
     neg = max(int((y == 0).sum()), 1)
@@ -115,7 +183,7 @@ def train_lightgbm(X: pd.DataFrame, y: pd.Series):
         random_state=RANDOM_STATE,
         verbosity=-1,
     )
-    model.fit(X, y)
+    model.fit(X, y, sample_weight=sample_weight)
     return model
 
 
@@ -127,28 +195,76 @@ def predict_proba(model: Any, X: pd.DataFrame) -> np.ndarray:
 
 
 class BlueTeam:
-    def __init__(self) -> None:
+    def __init__(self, feature_names: list[str] | None = None, model_id: str = "BLUE-0.1.0") -> None:
         self.logreg = None
         self.lgbm = None
         self.metrics: dict[str, Any] = {}
-        self.feature_names = list(FEATURE_COLUMNS)
+        self.feature_names = list(feature_names or FEATURE_COLUMNS)
+        self.model_id = model_id
+        self.calibrator = None
+        names = list(self.feature_names)
+        if names == list(FEATURE_COLUMNS_V020):
+            self.feature_version = "BLUE-FEAT-0.2.0"
+        elif names == list(FEATURE_COLUMNS_V012):
+            self.feature_version = "BLUE-FEAT-0.1.2"
+        elif names == list(FEATURE_COLUMNS_V011):
+            self.feature_version = "BLUE-FEAT-0.1.1"
+        else:
+            self.feature_version = "BLUE-FEAT-0.1.0"
 
-    def train(self, train: pd.DataFrame, test: pd.DataFrame) -> dict[str, Any]:
-        Xtr, ytr = feature_matrix(train), train["fraud_label"].astype(int)
-        Xte, yte = feature_matrix(test), test["fraud_label"].astype(int)
+    def train(self, train: pd.DataFrame, test: pd.DataFrame, *, calibrate: bool = False) -> dict[str, Any]:
+        fit_frame, calib_frame = train, None
+        if calibrate and len(train) >= 80 and train["fraud_label"].nunique() > 1:
+            try:
+                fit_idx, cal_idx = train_test_split(
+                    np.arange(len(train)),
+                    test_size=0.2,
+                    random_state=RANDOM_STATE,
+                    stratify=train["fraud_label"],
+                )
+            except ValueError:
+                fit_idx, cal_idx = train_test_split(
+                    np.arange(len(train)),
+                    test_size=0.2,
+                    random_state=RANDOM_STATE,
+                )
+            fit_frame = train.iloc[fit_idx]
+            calib_frame = train.iloc[cal_idx]
+        Xtr, ytr = feature_matrix(fit_frame, self.feature_names), fit_frame["fraud_label"].astype(int)
+        Xte, yte = feature_matrix(test, self.feature_names), test["fraud_label"].astype(int)
+        weights = family_balanced_weights(fit_frame) if _uses_family_weights(self.model_id) else None
         self.logreg = train_logreg(Xtr, ytr)
-        self.lgbm = train_lightgbm(Xtr, ytr)
-        p_a = predict_proba(self.logreg, Xte)
-        p_b = predict_proba(self.lgbm, Xte)
+        self.lgbm = train_lightgbm(Xtr, ytr, sample_weight=weights)
+        if calibrate and calib_frame is not None and len(calib_frame):
+            from app.blue_team.classifiers.calibration import ProbabilityCalibrator
+
+            raw = predict_proba(self.lgbm, feature_matrix(calib_frame, self.feature_names))
+            self.calibrator = ProbabilityCalibrator().fit(calib_frame["fraud_label"].to_numpy(), raw)
+        p_a = self._maybe_calibrate(predict_proba(self.logreg, Xte))
+        p_b = self._maybe_calibrate(predict_proba(self.lgbm, Xte))
         self.metrics = {
             "logreg": compute_metrics(yte.to_numpy(), p_a),
             "lightgbm": compute_metrics(yte.to_numpy(), p_b),
             "backend": "lightgbm" if HAS_LGB else "hist_gbdt",
+            "model_id": self.model_id,
+            "feature_version": self.feature_version,
+            "n_features": len(self.feature_names),
+            "calibrated": bool(self.calibrator and getattr(self.calibrator, "fitted", False)),
         }
+        if self.calibrator is not None:
+            self.metrics["calibration"] = {
+                "brier_before": getattr(self.calibrator, "brier_before", None),
+                "brier_after": getattr(self.calibrator, "brier_after", None),
+            }
         self.metrics["feature_importance"] = [
             {"feature": name, "importance": value} for name, value in self.importance_pairs(Xte, yte)
         ]
         return self.metrics
+
+    def _maybe_calibrate(self, proba: np.ndarray) -> np.ndarray:
+        if self.calibrator is not None and getattr(self.calibrator, "fitted", False):
+            return self.calibrator.transform(proba)
+        return proba
 
     def importance_pairs(
         self,
@@ -212,20 +328,58 @@ class BlueTeam:
     def score(self, df: pd.DataFrame) -> np.ndarray:
         if self.lgbm is None:
             raise RuntimeError("Model not trained")
-        return predict_proba(self.lgbm, feature_matrix(df))
+        work = df
+        if list(self.feature_names) == list(FEATURE_COLUMNS_V020):
+            from app.blue_team.context import ensure_p2
 
-    def save(self) -> Path:
+            work = ensure_p2(df)
+        return self._maybe_calibrate(predict_proba(self.lgbm, feature_matrix(work, self.feature_names)))
+
+    def save(self, path: Path | None = None) -> Path:
         ensure_dirs()
-        path = MODELS_DIR / "blue_team.joblib"
-        joblib.dump({"logreg": self.logreg, "lgbm": self.lgbm, "metrics": self.metrics}, path)
-        (MODELS_DIR / "metrics.json").write_text(json.dumps(self.metrics, indent=2))
-        return path
+        dest = Path(path) if path is not None else MODELS_DIR / "blue_team.joblib"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        blob = {
+            "logreg": self.logreg,
+            "lgbm": self.lgbm,
+            "metrics": self.metrics,
+            "feature_names": self.feature_names,
+            "model_id": self.model_id,
+            "calibrator": self.calibrator,
+            "feature_version": self.feature_version,
+        }
+        joblib.dump(blob, dest)
+        (dest.parent / "metrics.json").write_text(json.dumps(self.metrics, indent=2, default=str))
+        (dest.parent / "VERSION.json").write_text(
+            json.dumps(
+                {
+                    "model_version": self.model_id,
+                    "feature_version": self.feature_version,
+                    "n_features": len(self.feature_names),
+                    "calibrated": bool(self.calibrator and getattr(self.calibrator, "fitted", False)),
+                },
+                indent=2,
+            )
+        )
+        default_path = MODELS_DIR / "blue_team.joblib"
+        if dest.resolve() == default_path.resolve():
+            (MODELS_DIR / "metrics.json").write_text(json.dumps(self.metrics, indent=2, default=str))
+        return dest
 
     @classmethod
     def load(cls, path: Path | None = None) -> "BlueTeam":
         blob = joblib.load(path or MODELS_DIR / "blue_team.joblib")
-        team = cls()
+        names = list(blob.get("feature_names") or FEATURE_COLUMNS)
+        team = cls(feature_names=names, model_id=str(blob.get("model_id") or "BLUE-0.1.0"))
         team.logreg = blob["logreg"]
         team.lgbm = blob["lgbm"]
         team.metrics = blob.get("metrics") or {}
+        team.calibrator = blob.get("calibrator")
+        team.feature_version = str(blob.get("feature_version") or team.feature_version)
         return team
+
+    def version(self) -> str:
+        backend = str(self.metrics.get("backend") or ("lightgbm" if HAS_LGB else "hist_gbdt"))
+        pr = (self.metrics.get("lightgbm") or {}).get("pr_auc")
+        tag = f"-prauc{float(pr):.3f}" if pr is not None else ""
+        return f"{self.model_id}-{backend}{tag}"

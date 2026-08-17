@@ -1,0 +1,117 @@
+attack_id: AMT-001
+name: Amount Anomaly
+category: behavior
+evidence_level: research_pattern
+objective: Spend far from the personal amount baseline.
+target: normal_customers
+attack_surface:
+- amount
+required_entities:
+- customer
+- device
+- merchant
+required_features:
+- amount
+- hour_of_day
+- transaction_count_24h
+mutation_strategy: scale_amount_vs_personal_mean
+network_strategy: none
+intent_strategy: none
+agent_strategy: none
+evasion_strategies:
+- behavioral_mimicry
+difficulty_levels:
+  LOW:
+    amount_deviation: 10.0
+    velocity_multiplier: 1.0
+    merchant_count_multiplier: 1.0
+    geo_deviation: 0.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 0.0
+    dest_concentration_delta: 0.0
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: false
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 1
+    spread_seconds: 0.0
+  MEDIUM:
+    amount_deviation: 4.0
+    velocity_multiplier: 1.0
+    merchant_count_multiplier: 1.0
+    geo_deviation: 0.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 0.0
+    dest_concentration_delta: 0.0
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: false
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 1
+    spread_seconds: 0.0
+  HIGH:
+    amount_deviation: 0.35
+    velocity_multiplier: 1.0
+    merchant_count_multiplier: 1.0
+    geo_deviation: 0.0
+    distance_boost: 0.0
+    device_change_probability: 0.0
+    ip_change_probability: 0.0
+    beneficiary_change_probability: 0.0
+    merchant_change_probability: 0.0
+    failed_auth_boost: 0.0
+    hour_shift: 0.0
+    dest_concentration_delta: 0.0
+    account_age_scale: 1.0
+    share_device: false
+    share_ip: false
+    share_merchant: false
+    share_beneficiary: false
+    fragment_parts: 1
+    category_flip: false
+    cluster_count: 1
+    spread_seconds: 0.0
+simulation_template: legit_overlay:amount_anomaly
+detection_signals:
+- amount
+- amount_deviation
+expected_mitigation: Customer-level amount z-score.
+family: amount_anomaly
+variants:
+- id: AMT-V01
+  name: Ticket spike
+  overlays:
+    amount_deviation: 9.0
+- id: AMT-V02
+  name: Moderate lift
+  overlays:
+    amount_deviation: 3.0
+- id: AMT-V03
+  name: Split-looking mid
+  overlays:
+    amount_deviation: 1.8
+    fragment_parts: 2
+- id: AMT-V04
+  name: Slight overpay
+  overlays:
+    amount_deviation: 0.45
+- id: AMT-V05
+  name: Near baseline
+  overlays:
+    amount_deviation: 0.18

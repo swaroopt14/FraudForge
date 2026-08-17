@@ -26,9 +26,16 @@ MODELS_DIR = LAB_ROOT / "models"
 EVAL_DIR = LAB_ROOT / "evaluation"
 REPORTS_DIR = EVAL_DIR / "reports"
 SIM_DIR = LAB_ROOT / "simulations"
+THREATS_DIR = LAB_ROOT / "threats"
+BENCHMARK_DIR = EVAL_DIR / "benchmarks" / "p1"
+BLUE_DEFENSE_DIR = LAB_ROOT / "blue_defense_library"
+RED_MEMORY_DIR = DATA_DIR / "red_memory"
+BLUE_MEMORY_DIR = DATA_DIR / "blue_memory"
 
 PAYMENTS_PATH = PROCESSED_DIR / "payments.parquet"
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR / 'lab.db'}")
+BLUE_MODEL_VERSION = os.getenv("BLUE_MODEL_VERSION", "BLUE-0.1.0")
+NEVER_SEEN_PAIR_HOURS = 24.0 * 90.0
 
 ALLOW_THRESHOLD = float(os.getenv("ALLOW_THRESHOLD", "0.30"))
 STEP_UP_THRESHOLD = float(os.getenv("STEP_UP_THRESHOLD", "0.60"))
@@ -54,6 +61,11 @@ P2_ATTACK_FAMILIES = [
 
 ALL_ATTACK_FAMILIES = ATTACK_FAMILIES + P2_ATTACK_FAMILIES
 
+FEATURE_VERSION = "BLUE-FEAT-0.1.0"
+FEATURE_VERSION_V011 = "BLUE-FEAT-0.1.1"
+FEATURE_VERSION_V012 = "BLUE-FEAT-0.1.2"
+FEATURE_VERSION_V020 = "BLUE-FEAT-0.2.0"
+
 FEATURE_COLUMNS = [
     "amount",
     "account_age_days",
@@ -70,6 +82,29 @@ FEATURE_COLUMNS = [
     "beneficiary_is_new",
     "destination_concentration",
     "merchant_count_24h",
+]
+
+# P1.2 behavioral extras. No graph/geo/intent/agent heads.
+FEATURE_COLUMNS_V011 = FEATURE_COLUMNS + [
+    "log_amount",
+    "amount_zscore",
+    "txn_count_1m",
+    "txn_count_5m",
+    "customer_std_amount",
+    "customer_beneficiary_count",
+    "beneficiary_frequency",
+    "customer_merchant_frequency",
+    "merchant_avg_amount",
+    "hour_sin",
+    "hour_cos",
+]
+
+# P1.3 corpus-grounded beneficiary behavior.
+FEATURE_COLUMNS_V012 = FEATURE_COLUMNS_V011 + [
+    "beneficiary_sender_count",
+    "hours_since_pair",
+    "pair_amount_deviation",
+    "payee_novelty",
 ]
 
 # P2 context + network features. Never include labels or Red Team metadata.
@@ -99,7 +134,39 @@ LEAKAGE_COLUMNS = [
     "variant_id",
 ]
 
+LEAKAGE_FORBIDDEN = (
+    "attack_id",
+    "attack_family",
+    "attack_type",
+    "simulation_id",
+    "variant_id",
+    "ground_truth",
+    "fraud_label",
+    "agent_id",
+    "intent_id",
+    "agent_in_scope",
+    "intent_match",
+    "red_team_score",
+    "difficulty",
+    "attack_success",
+    "expected_attack_success",
+    "novelty_score",
+    "seed",
+)
+
 
 def ensure_dirs() -> None:
-    for path in (PROCESSED_DIR, SYNTHETIC_DIR, MODELS_DIR, REPORTS_DIR, SIM_DIR, DATA_DIR):
+    for path in (
+        PROCESSED_DIR,
+        SYNTHETIC_DIR,
+        MODELS_DIR,
+        REPORTS_DIR,
+        SIM_DIR,
+        DATA_DIR,
+        THREATS_DIR,
+        BLUE_DEFENSE_DIR,
+        RED_MEMORY_DIR,
+        BLUE_MEMORY_DIR,
+        BENCHMARK_DIR,
+    ):
         path.mkdir(parents=True, exist_ok=True)

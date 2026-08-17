@@ -73,6 +73,49 @@ class PaymentRow(Base):
     payload: Mapped[str] = mapped_column(String)
 
 
+class GraphEdge(Base):
+    __tablename__ = "graph_edges"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(String(64), index=True)
+    src_type: Mapped[str] = mapped_column(String(32))
+    src_id: Mapped[str] = mapped_column(String(64))
+    dst_type: Mapped[str] = mapped_column(String(32))
+    dst_id: Mapped[str] = mapped_column(String(64))
+    relation: Mapped[str] = mapped_column(String(32))
+    weight: Mapped[float] = mapped_column(Float, default=1.0)
+
+
+class AgentEvent(Base):
+    __tablename__ = "agent_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(String(64), index=True)
+    transaction_id: Mapped[str] = mapped_column(String(64), index=True)
+    agent_id: Mapped[str] = mapped_column(String(64), default="")
+    tool: Mapped[str] = mapped_column(String(32), default="")
+    intent: Mapped[str] = mapped_column(String(64), default="")
+    in_scope: Mapped[int] = mapped_column(Integer, default=1)
+    reason: Mapped[str] = mapped_column(String(64), default="")
+
+
+class RedTeamRun(Base):
+    __tablename__ = "redteam_runs"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    attack_id: Mapped[str] = mapped_column(String(32), index=True)
+    variant_id: Mapped[str] = mapped_column(String(32), default="")
+    family: Mapped[str] = mapped_column(String(64), default="")
+    difficulty: Mapped[str] = mapped_column(String(16), default="MEDIUM")
+    n: Mapped[int] = mapped_column(Integer)
+    seed: Mapped[int] = mapped_column(Integer)
+    target_population: Mapped[str] = mapped_column(String(64), default="normal_customers")
+    params_json: Mapped[str] = mapped_column(String, default="{}")
+    metrics_json: Mapped[str] = mapped_column(String, default="{}")
+    report_text: Mapped[str] = mapped_column(String, default="")
+    model_version: Mapped[str] = mapped_column(String(64), default="BLUE-0.1.0")
+
+
 class SimulationRun(Base):
     __tablename__ = "simulation_runs"
 

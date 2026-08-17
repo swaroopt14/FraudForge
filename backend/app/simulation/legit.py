@@ -47,7 +47,11 @@ def generate_legitimate(
     n: int,
     seed: int = RANDOM_STATE,
     start_ts: float = 1_000_000.0,
+    history=None,
+    source: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
+    if source is not None and len(source):
+        return _from_source(source, n, seed, history)
     rng = np.random.default_rng(seed)
     idx = rng.integers(0, len(profiles), size=n)
     chosen = profiles.iloc[idx].reset_index(drop=True)
@@ -84,4 +88,33 @@ def generate_legitimate(
     )
     out["timestamp"] = out["timestamp"].to_numpy() + hours * 0  # keep hour_of_day independent of ts for sampling
     out["hour_of_day"] = (out["timestamp"] % 86400.0) / 3600.0
-    return add_behavior_features(out)
+    out = add_behavior_features(out)
+    if history is not None:
+        out = history.attach(out, refresh_concentration=True)
+    return out
+
+
+def _from_source(source: pd.DataFrame, n: int, seed: int, history=None) -> pd.DataFrame:
+    """Replay real legit rows with in-band jitter, then overlay attacks. Avoids synthetic-vs-IEEE leakage."""
+    from app.data.ingest import refresh_derived_scalars
+
+    work = source
+    if "fraud_label" in work.columns:
+        work = work.loc[work["fraud_label"] == 0]
+    if work.empty:
+        work = source
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(work), size=n)
+    out = work.iloc[idx].copy().reset_index(drop=True)
+    jitter = rng.uniform(0.97, 1.03, size=n)
+    out["amount"] = (pd.to_numeric(out["amount"], errors="coerce").fillna(1.0) * jitter).clip(lower=0.01)
+    avg = pd.to_numeric(out.get("avg_amount_30d", out["amount"]), errors="coerce").fillna(out["amount"]).clip(lower=0.01)
+    out["amount_deviation"] = (out["amount"] / avg) - 1.0
+    out["transaction_id"] = [f"syn-{seed}-{i}" for i in range(n)]
+    out["fraud_label"] = 0
+    out["attack_family"] = ""
+    extra = [c for c in ("attack_id", "variant_id", "seed", "ground_truth", "simulation_id") if c in out.columns]
+    if extra:
+        out = out.drop(columns=extra)
+    out = refresh_derived_scalars(out)
+    return out

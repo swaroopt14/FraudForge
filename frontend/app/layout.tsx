@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
-import { Nav } from "@/components/nav";
+import { Shell } from "@/components/shell";
 import "./globals.css";
 
 const sans = IBM_Plex_Sans({
@@ -17,15 +17,17 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Adversarial Payment Defense Lab",
-  description: "Generate attacks, score them, read the report.",
+  description: "Red Team generates. Blue Team scores. Evaluation tells the truth.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${sans.variable} ${mono.variable} font-sans antialiased`}>
-        <Nav />
-        <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
+        <div className="flex min-h-screen">
+          <Shell />
+          <main className="min-w-0 flex-1 overflow-x-hidden px-8 py-8">{children}</main>
+        </div>
       </body>
     </html>
   );
