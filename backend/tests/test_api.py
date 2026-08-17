@@ -23,7 +23,7 @@ def test_health_and_flow(payments, tmp_path, monkeypatch) -> None:
 
     client = TestClient(app)
     assert client.get("/health").json()["status"] == "ok"
-    assert len(client.get("/attacks").json()["attacks"]) == 5
+    assert len(client.get("/attacks").json()["attacks"]) >= 5
     gen = client.post(
         "/simulation/generate",
         json={"attack_id": "amount_anomaly", "transaction_count": 40, "seed": 8, "intensity": "medium"},

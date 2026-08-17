@@ -48,7 +48,7 @@ export default function CommandCenter() {
         <div>
           <h1 className="text-4xl font-medium tracking-tight">Command center</h1>
           <p className="mt-2 max-w-xl text-sm text-white/55">
-            Holdout metrics for the Blue Team detector. Numbers come from the last train, not a canned slide.
+            Holdout metrics for BLUE-0.1.0. Contextual defense — network, geo, device, IP — lives under Blue team.
           </p>
         </div>
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/40">

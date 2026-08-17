@@ -44,6 +44,41 @@ FAMILY_COPY = {
         "red": "Increase behavioral mimicry.",
         "blue": "Add sequence + cumulative network features.",
     },
+    "mule_network": {
+        "finding": "Many quiet accounts pay the same new beneficiaries.",
+        "detected": ["beneficiary fan-in", "shared device", "shared IP"],
+        "weak": ["longer beneficiary history"],
+        "red": "Increase beneficiary count and warm them slowly.",
+        "blue": "Keep rolling fan-in / fan-out on the stream.",
+    },
+    "shared_device": {
+        "finding": "One device is attached to many otherwise unrelated accounts.",
+        "detected": ["device-account degree"],
+        "weak": ["device fingerprint richness"],
+        "red": "Rotate devices per account.",
+        "blue": "Treat device degree as a network feature, not a single-row flag.",
+    },
+    "shared_ip": {
+        "finding": "One IP is attached to many otherwise unrelated accounts.",
+        "detected": ["IP-account degree"],
+        "weak": ["proxy / NAT context"],
+        "red": "Spread across residential IPs.",
+        "blue": "Pair IP degree with beneficiary fan-in.",
+    },
+    "geo_anomaly": {
+        "finding": "The same account hops countries faster than travel allows.",
+        "detected": ["impossible travel", "country delta"],
+        "weak": ["known travel corridors"],
+        "red": "Insert layover time.",
+        "blue": "Keep geo sequence, not only distance-from-home.",
+    },
+    "combined_context": {
+        "finding": "Several weak signals become a high-confidence coordinated event.",
+        "detected": ["shared device", "shared IP", "new beneficiary", "geo jump"],
+        "weak": ["agent intent"],
+        "red": "Drop one signal at a time to stay under each threshold.",
+        "blue": "Score combinations, not isolated rules.",
+    },
 }
 
 

@@ -10,6 +10,7 @@ import pandas as pd
 from app.core.config import ATTACK_FAMILIES, RANDOM_STATE
 from app.data.ingest import add_behavior_features
 from app.simulation.legit import fit_profiles, generate_legitimate
+from app.simulation.p2_attacks import P2_APPLY, generate_p2_attacks, p2_attack_catalog
 
 INTENSITY = {
     "low": 0.6,
@@ -96,6 +97,7 @@ APPLY = {
     "amount_anomaly": apply_amount_anomaly,
     "beneficiary_anomaly": apply_beneficiary_anomaly,
     "low_and_slow": apply_low_and_slow,
+    **P2_APPLY,
 }
 
 
@@ -113,7 +115,14 @@ def generate_attacks(
         "BEN_001": "beneficiary_anomaly",
         "LOW_AND_SLOW_FRAUD": "low_and_slow",
         "low_and_slow_fraud": "low_and_slow",
+        "MUL-001": "mule_network",
+        "DEV-001": "shared_device",
+        "IP-001": "shared_ip",
+        "GEO-001": "geo_anomaly",
+        "CTX-001": "combined_context",
     }.get(attack_id, attack_id)
+    if family in P2_APPLY:
+        return generate_p2_attacks(payments, family, transaction_count, seed=seed, intensity=intensity)
     if family not in APPLY:
         raise ValueError(f"Unknown attack: {attack_id}")
     profiles = fit_profiles(payments)
@@ -133,10 +142,11 @@ def generate_mixed_attacks(payments: pd.DataFrame, n_each: int, seed: int = RAND
 
 
 def attack_catalog() -> list[dict[str, Any]]:
-    return [
-        {"id": "account_takeover", "name": "Account takeover", "mutates": ["device", "ip", "geo", "velocity", "amount", "failed_auth_count"]},
-        {"id": "velocity_attack", "name": "Velocity attack", "mutates": ["transaction_count", "spacing", "merchant_count"]},
-        {"id": "amount_anomaly", "name": "Amount anomaly", "mutates": ["amount", "amount_deviation"]},
-        {"id": "beneficiary_anomaly", "name": "Beneficiary anomaly", "mutates": ["beneficiary_id", "destination_concentration"]},
-        {"id": "low_and_slow", "name": "Low-and-slow", "mutates": ["timing", "sequence", "destination_concentration"]},
+    p0 = [
+        {"id": "account_takeover", "name": "Account takeover", "tier": "P0", "mutates": ["device", "ip", "geo", "velocity", "amount", "failed_auth_count"]},
+        {"id": "velocity_attack", "name": "Velocity attack", "tier": "P0", "mutates": ["transaction_count", "spacing", "merchant_count"]},
+        {"id": "amount_anomaly", "name": "Amount anomaly", "tier": "P0", "mutates": ["amount", "amount_deviation"]},
+        {"id": "beneficiary_anomaly", "name": "Beneficiary anomaly", "tier": "P0", "mutates": ["beneficiary_id", "destination_concentration"]},
+        {"id": "low_and_slow", "name": "Low-and-slow", "tier": "P0", "mutates": ["timing", "sequence", "destination_concentration"]},
     ]
+    return p0 + p2_attack_catalog()

@@ -44,6 +44,16 @@ ATTACK_FAMILIES = [
     "low_and_slow",
 ]
 
+P2_ATTACK_FAMILIES = [
+    "mule_network",
+    "shared_device",
+    "shared_ip",
+    "geo_anomaly",
+    "combined_context",
+]
+
+ALL_ATTACK_FAMILIES = ATTACK_FAMILIES + P2_ATTACK_FAMILIES
+
 FEATURE_COLUMNS = [
     "amount",
     "account_age_days",
@@ -60,6 +70,33 @@ FEATURE_COLUMNS = [
     "beneficiary_is_new",
     "destination_concentration",
     "merchant_count_24h",
+]
+
+# P2 context + network features. Never include labels or Red Team metadata.
+FEATURE_COLUMNS_V020 = FEATURE_COLUMNS + [
+    "geo_country_delta",
+    "geo_impossible_travel",
+    "geo_distance_delta",
+    "device_account_count",
+    "device_is_shared",
+    "ip_account_count",
+    "ip_is_shared",
+    "beneficiary_fan_in",
+    "beneficiary_txn_count",
+    "beneficiary_customer_share",
+    "network_degree",
+    "mule_cluster_score",
+]
+
+LEAKAGE_COLUMNS = [
+    "attack_family",
+    "fraud_label",
+    "simulation_id",
+    "attack_id",
+    "difficulty",
+    "red_team_score",
+    "ground_truth",
+    "variant_id",
 ]
 
 
