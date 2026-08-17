@@ -1,50 +1,22 @@
-# Secrets
 .env
 .env.local
-*.pem
-
-# Data (large)
-backend/data/creditcard/*.csv
-backend/data/creditcard/*.zip
-backend/data/*.db
-backend/data/*.db-journal
-
-# Models
-backend/models/*.pkl
-backend/models/*.pt
-backend/models/*.pth
-backend/models/*.joblib
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
 .venv/
 venv/
-env/
+__pycache__/
+*.py[cod]
 .pytest_cache/
 .mypy_cache/
-.ruff_cache/
-
-# OS / IDE
+node_modules/
+.next/
+data/raw/
+data/processed/*.parquet
+data/synthetic/*.parquet
+data/*.db
+models/*.pkl
+models/*.joblib
+evaluation/reports/*
+!evaluation/reports/.gitkeep
+simulations/*
+!simulations/.gitkeep
+*.csv
 .DS_Store
-.idea/
-.vscode/
-*.swp
-
-# Local tooling (do not ship)
-.cursor/
-.claude/
-.agents/
-closed loop/
-*BUILD REQUEST.md
-
-# Streamlit
-.streamlit/secrets.toml
-
-# Simulation event logs (regenerated at demo time)
-backend/data/demo/sim_events.jsonl
-backend/data/demo/sim_failures.jsonl
-backend/data/demo/sim_hard_negatives.jsonl
-backend/data/demo/sim_model_registry.json

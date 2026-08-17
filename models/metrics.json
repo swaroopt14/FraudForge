@@ -1,0 +1,102 @@
+{
+  "logreg": {
+    "precision": 0.22411347517730495,
+    "recall": 0.40512820512820513,
+    "f1": 0.28858447488584477,
+    "pr_auc": 0.22218648905548796,
+    "roc_auc": 0.7646929802710243,
+    "fpr": 0.1417098445595855,
+    "threshold": 0.5,
+    "n": 17000,
+    "n_pos": 1560
+  },
+  "lightgbm": {
+    "precision": 0.9045801526717557,
+    "recall": 0.1519230769230769,
+    "f1": 0.2601536772777168,
+    "pr_auc": 0.3596452224520758,
+    "roc_auc": 0.7200682542845754,
+    "fpr": 0.0016191709844559584,
+    "threshold": 0.5,
+    "n": 17000,
+    "n_pos": 1560
+  },
+  "backend": "hist_gbdt",
+  "per_attack": {
+    "account_takeover": {
+      "precision": 0.9933774834437086,
+      "recall": 1.0,
+      "f1": 0.9966777408637874,
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "fpr": 0.0025,
+      "threshold": 0.5,
+      "n": 1100,
+      "n_pos": 300
+    },
+    "velocity_attack": {
+      "precision": 0.9933774834437086,
+      "recall": 1.0,
+      "f1": 0.9966777408637874,
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "fpr": 0.0025,
+      "threshold": 0.5,
+      "n": 1100,
+      "n_pos": 300
+    },
+    "amount_anomaly": {
+      "precision": 0.99,
+      "recall": 0.99,
+      "f1": 0.99,
+      "pr_auc": 0.9998503656523307,
+      "roc_auc": 0.9999625000000001,
+      "fpr": 0.0025,
+      "threshold": 0.5,
+      "n": 1000,
+      "n_pos": 200
+    },
+    "beneficiary_anomaly": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "pr_auc": 0.40569847312005247,
+      "roc_auc": 0.6844250000000001,
+      "fpr": 0.0025,
+      "threshold": 0.5,
+      "n": 1200,
+      "n_pos": 400
+    },
+    "low_and_slow": {
+      "precision": 0.5,
+      "recall": 0.005,
+      "f1": 0.009900990099009901,
+      "pr_auc": 0.3543604517311133,
+      "roc_auc": 0.53305,
+      "fpr": 0.0025,
+      "threshold": 0.5,
+      "n": 1200,
+      "n_pos": 400
+    }
+  },
+  "fidelity": {
+    "amount_distribution": 0.8769,
+    "time_distribution": 0.6959,
+    "velocity_distribution": 0.5387,
+    "merchant_distribution": 0.993,
+    "overall_fidelity": 0.7703,
+    "raw": {
+      "amount_wasserstein": 28.485915390754954,
+      "amount_ks": 0.21040000000000003,
+      "time_wasserstein": 2.4326092374539856,
+      "velocity_wasserstein": 0.6892000000000001,
+      "merchant_js": 0.007017243414263553
+    },
+    "weights": {
+      "amount": 0.3,
+      "time": 0.25,
+      "velocity": 0.25,
+      "merchant": 0.2
+    }
+  }
+}

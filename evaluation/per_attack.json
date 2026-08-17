@@ -1,0 +1,57 @@
+{
+  "account_takeover": {
+    "precision": 0.9933774834437086,
+    "recall": 1.0,
+    "f1": 0.9966777408637874,
+    "pr_auc": 1.0,
+    "roc_auc": 1.0,
+    "fpr": 0.0025,
+    "threshold": 0.5,
+    "n": 1100,
+    "n_pos": 300
+  },
+  "velocity_attack": {
+    "precision": 0.9933774834437086,
+    "recall": 1.0,
+    "f1": 0.9966777408637874,
+    "pr_auc": 1.0,
+    "roc_auc": 1.0,
+    "fpr": 0.0025,
+    "threshold": 0.5,
+    "n": 1100,
+    "n_pos": 300
+  },
+  "amount_anomaly": {
+    "precision": 0.99,
+    "recall": 0.99,
+    "f1": 0.99,
+    "pr_auc": 0.9998503656523307,
+    "roc_auc": 0.9999625000000001,
+    "fpr": 0.0025,
+    "threshold": 0.5,
+    "n": 1000,
+    "n_pos": 200
+  },
+  "beneficiary_anomaly": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "pr_auc": 0.40569847312005247,
+    "roc_auc": 0.6844250000000001,
+    "fpr": 0.0025,
+    "threshold": 0.5,
+    "n": 1200,
+    "n_pos": 400
+  },
+  "low_and_slow": {
+    "precision": 0.5,
+    "recall": 0.005,
+    "f1": 0.009900990099009901,
+    "pr_auc": 0.3543604517311133,
+    "roc_auc": 0.53305,
+    "fpr": 0.0025,
+    "threshold": 0.5,
+    "n": 1200,
+    "n_pos": 400
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "amount_distribution": 0.8183,
+  "time_distribution": 0.6979,
+  "velocity_distribution": 0.8733,
+  "merchant_distribution": 0.9909,
+  "overall_fidelity": 0.83647,
+  "raw": {
+    "amount_wasserstein": 31.19027237060466,
+    "amount_ks": 0.2341666666666667,
+    "time_wasserstein": 2.4171158266233546,
+    "velocity_wasserstein": 0.1266666666666666,
+    "merchant_js": 0.009139151623964871
+  },
+  "weights": {
+    "amount": 0.3,
+    "time": 0.25,
+    "velocity": 0.25,
+    "merchant": 0.2
+  }
+}

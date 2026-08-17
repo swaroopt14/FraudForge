@@ -1,0 +1,26 @@
+---
+description: FraudForge technical requirements matrix — backend capabilities, not extra UI pages
+alwaysApply: true
+---
+
+# Technical requirements (hackathon)
+
+These six rows are **product requirements**. Identify / Generate / Defend already have Streamlit views. **Closed Loop, Real-time, and Novelty are backend/API capabilities — do not add new UI pages for them** unless the user asks.
+
+| Requirement | Meaning | Implementation | Metric |
+|---|---|---|---|
+| Identify | Attack discovery engine | Agentic research + threat-intel ingest | Distinct attack families |
+| Generate | Synthetic attack generator | LLM briefing + family overlay simulator + CTGAN/TVAE (bootstrap fallback) | Fidelity (KS/WD) + attack success rate |
+| Defend | Fraud classifier | XGBoost/LightGBM (HistGB fallback) + optional relational/GNN head | Precision, Recall, F1, AUC, FPR |
+| Closed Loop | Adversarial feedback | Red generate → blue score → failure analysis → retrain | Attack success before vs after |
+| Real-time | Streaming detection | FastAPI `/detect` batch inference; Kafka optional, skip for demo | Latency &lt;100ms demo, &lt;50ms production narrative |
+| Novelty | Emerging attacks | Threat intel + research agent + adversarial optimizer | Coverage of attacks not in training data |
+
+## Build rules
+
+- Incremental: about five changes per batch. Do not rebuild the research dump.
+- Defensive only: hypotheses and overlays, no phishing copy, exploits, or live payment-rail attacks.
+- Closed Loop lives in `backend/closed_loop.py`, `AdversarialOptimizer`, `FeedbackAgent`, `POST /evaluate/loop`. Robustness = holdout attack success before vs after retrain.
+- Real-time = FastAPI batch `/detect` with measured latency. Do not add Kafka unless asked.
+- Novelty = hold-out / washed / adversarial rows the initial detector did not train on. Report novel coverage, do not fake unseen families if they are already in `TRAIN_FAMILY_WEIGHTS`.
+- Streamlit is the demo shell for Identify / Generate / Defend (and the existing loop viewer). New work on Closed Loop / Real-time / Novelty should land in backend + API first.
